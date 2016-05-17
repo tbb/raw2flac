@@ -63,13 +63,13 @@ def make_result_tree():
                     if FILE_EXTENSION == '.flac':
                         AudioSegment.from_raw(path.join(root, filename),
                                               sample_width=2,
-                                              frame_rate=44100,
+                                              frame_rate=22050,
                                               channels=2).export(path.join(currentDirName, filename) + FILE_EXTENSION,
                                                                  format='flac')
                     elif FILE_EXTENSION == '.mp3':
                         AudioSegment.from_raw(path.join(root, filename),
                                               sample_width=2,
-                                              frame_rate=44100,
+                                              frame_rate=22050,
                                               channels=2).export(path.join(currentDirName, filename) + FILE_EXTENSION,
                                                                  format='mp3')
                     print("\t{}..{}\t{} successfully converted to {}".format(currentIndex, len(new_files), path.join(root, filename), FILE_EXTENSION[1:]))
