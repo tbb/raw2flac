@@ -1,11 +1,10 @@
 from shutil import rmtree
 from os import walk, path, mkdir
 from pydub import AudioSegment
-from time import sleep
 from sys import argv, exit
 
 RESULT_DIRNAME = 'Result'
-RESULT_CONVERTED_DIRNAME = 'Result_flac'
+RESULT_CONVERTED_DIRNAME = 'Result_mp3'
 FILE_EXTENSION = '.mp3'
 SUPPORTED_FORMATS = [
     'mp3',
@@ -77,14 +76,8 @@ def make_result_tree():
                     currentIndex += 1
     else:
         print("OK. See you later")
+        return
     print("\t All new files successfully converted to {}".format(FILE_EXTENSION[1:]))
-
-def clear():
-    if path.exists(RESULT_CONVERTED_DIRNAME):
-        print("Warning: {} will be removed in few second".format(RESULT_CONVERTED_DIRNAME))
-        sleep(5)
-        rmtree(RESULT_CONVERTED_DIRNAME)
-        print("Successfully remove {}".format(RESULT_CONVERTED_DIRNAME))
 
 if __name__ == "__main__":
     if len(argv) > 1:
