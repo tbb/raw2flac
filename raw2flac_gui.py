@@ -34,8 +34,7 @@ class convertFileThread(QThread):
         for resPath in self.resourceDict:
             if self._convert(resPath, self.resourceDict[resPath]):
                 self.successfullyConvert.emit(resPath, self.resourceDict[resPath])
-            else:
-                print("WTF!?")
+
 
 class MainWindow(Ui_Form):
     def __init__(self, form):
