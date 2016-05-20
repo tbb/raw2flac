@@ -90,7 +90,7 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
+        Form.setWindowTitle(_translate("Form", "Audio Converter"))
         self.resourceDirectoryLabel.setText(_translate("Form", "Resource Directory"))
         self.resourceDirectoryLineEdit.setPlaceholderText(_translate("Form", "Path to raw audio"))
         self.resourceDirectoryDialogButton.setText(_translate("Form", "..."))

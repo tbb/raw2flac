@@ -34,6 +34,8 @@ class convertFileThread(QThread):
         for resPath in self.resourceDict:
             if self._convert(resPath, self.resourceDict[resPath]):
                 self.successfullyConvert.emit(resPath, self.resourceDict[resPath])
+            else:
+                print("Handle exception with convert {} to {}".format(resPath, self.resourceDict[resPath]))
 
 
 class MainWindow(Ui_Form):
@@ -74,18 +76,20 @@ class MainWindow(Ui_Form):
 
     def showResourceDialog(self):
         path_dir = path.normpath(QFileDialog.getExistingDirectory())
-        self.resourceDirectoryLineEdit.setText(path_dir)
-        self.RESULT_DIRNAME = path_dir
-        if not self.destinationDirectoryLineEdit.text():
-            self.RESULT_CONVERTED_DIRNAME = path_dir + "_" + self.FILE_EXTENSION[1:]
-            self.destinationDirectoryLineEdit.setText(self.RESULT_CONVERTED_DIRNAME)
-        self.scanButtonChangeState()
+        if path_dir != '.':
+            self.resourceDirectoryLineEdit.setText(path_dir)
+            self.RESULT_DIRNAME = path_dir
+            if not self.destinationDirectoryLineEdit.text():
+                self.RESULT_CONVERTED_DIRNAME = path_dir + "_" + self.FILE_EXTENSION[1:]
+                self.destinationDirectoryLineEdit.setText(self.RESULT_CONVERTED_DIRNAME)
+            self.scanButtonChangeState()
 
     def showDestinationDialog(self):
         path_dir = path.normpath(QFileDialog.getExistingDirectory())
-        self.destinationDirectoryLineEdit.setText(path_dir)
-        self.RESULT_CONVERTED_DIRNAME = path_dir
-        self.scanButtonChangeState()
+        if path_dir != '.':
+            self.destinationDirectoryLineEdit.setText(path_dir)
+            self.RESULT_CONVERTED_DIRNAME = path_dir
+            self.scanButtonChangeState()
 
     def compareTrees(self):
         self.FILE_EXTENSION = "." + self.audioFormatComboBox.currentText()
@@ -125,13 +129,15 @@ Press convert button to start convert another {} files."""
             mkdir(self.RESULT_CONVERTED_DIRNAME)
         for root, dirs, files in walk(path.relpath(self.RESULT_DIRNAME)):
             for dirname in dirs:
-                currentDirName = path.join(self.RESULT_CONVERTED_DIRNAME, '\\'.join(root.split('\\')[1:]), dirname)
-                if not path.exists(currentDirName):
-                    mkdir(currentDirName)
+                dirpath = path.join(root, dirname)
+                full_dirpath = path.join(self.RESULT_CONVERTED_DIRNAME, path.relpath(path.realpath(dirpath), start=self.RESULT_DIRNAME))
+                if not path.exists(full_dirpath):
+                    mkdir(full_dirpath)
             for filename in files:
-                currentDirName = path.join(self.RESULT_CONVERTED_DIRNAME, '\\'.join(root.split('\\')[1:]))
+                fill_respath = path.join(self.RESULT_DIRNAME, path.relpath(path.realpath(root), start=self.RESULT_DIRNAME))
+                full_destpath = path.join(self.RESULT_CONVERTED_DIRNAME, path.relpath(path.realpath(root), start=self.RESULT_DIRNAME))
                 if path.relpath(path.join(root, filename), start=self.RESULT_DIRNAME) in self.new_files:
-                    resourceDict[path.join(root, filename)] = path.join(currentDirName, filename) + self.FILE_EXTENSION
+                    resourceDict[path.join(fill_respath, filename)] = path.join(full_destpath, filename) + self.FILE_EXTENSION
         self.convertButton.setEnabled(False)
         self.thread = convertFileThread(resourceDict, self.FILE_EXTENSION[1:])
         self.thread.successfullyConvert[str, str].connect(self.convertAnotherOne)
