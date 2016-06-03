@@ -166,6 +166,16 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="convertStopButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Stop</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

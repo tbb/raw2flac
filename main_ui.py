@@ -75,6 +75,10 @@ class Ui_Form(object):
         self.convertButton.setEnabled(False)
         self.convertButton.setObjectName("convertButton")
         self.buttonsLayout.addWidget(self.convertButton)
+        self.convertStopButton = QtWidgets.QPushButton(self.buttonsFrame)
+        self.convertStopButton.setEnabled(False)
+        self.convertStopButton.setObjectName("convertStopButton")
+        self.buttonsLayout.addWidget(self.convertStopButton)
         self.verticalLayout.addWidget(self.buttonsFrame)
         self.informationLabel = QtWidgets.QLabel(Form)
         self.informationLabel.setObjectName("informationLabel")
@@ -102,6 +106,7 @@ class Ui_Form(object):
         self.audioFormatComboBox.setItemText(1, _translate("Form", "flac"))
         self.scanButton.setText(_translate("Form", "Scan"))
         self.convertButton.setText(_translate("Form", "Convert"))
+        self.convertStopButton.setText(_translate("Form", "Stop"))
         self.informationLabel.setText(_translate("Form", "Information"))
         self.informationTextEdit.setPlaceholderText(_translate("Form", "Welcome! Choose resource and destination directory to start."))
 
