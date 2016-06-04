@@ -22,14 +22,84 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="0">
+     <item row="1" column="0">
       <widget class="QLabel" name="resourceDirectoryLabel">
        <property name="text">
         <string>Resource Directory</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
+     <item row="2" column="2">
+      <widget class="QLineEdit" name="destinationDirectoryLineEdit">
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="readOnly">
+        <bool>false</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Path to converted audio</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="audioFormatLabel">
+       <property name="text">
+        <string>Audio Format</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QComboBox" name="audioFormatComboBox">
+       <item>
+        <property name="text">
+         <string>mp3</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>flac</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QToolButton" name="destinationDirectoryDialogButton">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="3">
+      <spacer name="audioFormatSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Fixed</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>25</width>
+         <height>19</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="destinationDirectoryLabel">
+       <property name="text">
+        <string>Destination Directory</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
       <widget class="QLineEdit" name="resourceDirectoryLineEdit">
        <property name="maximumSize">
         <size>
@@ -51,81 +121,31 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
+     <item row="1" column="3">
       <widget class="QToolButton" name="resourceDirectoryDialogButton">
        <property name="text">
         <string>...</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="destinationDirectoryLabel">
+     <item row="0" column="0">
+      <widget class="QLabel" name="resourceIdLabel">
        <property name="text">
-        <string>Destination Directory</string>
+        <string>Resource ID</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="destinationDirectoryLineEdit">
+     <item row="0" column="2">
+      <widget class="QLineEdit" name="resourceIdLineEdit">
        <property name="maximumSize">
         <size>
          <width>300</width>
          <height>16777215</height>
         </size>
        </property>
-       <property name="readOnly">
-        <bool>false</bool>
-       </property>
        <property name="placeholderText">
-        <string>Path to converted audio</string>
+        <string>PPE Name or ID</string>
        </property>
-       <property name="clearButtonEnabled">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QToolButton" name="destinationDirectoryDialogButton">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="audioFormatLabel">
-       <property name="text">
-        <string>Audio Format</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <spacer name="audioFormatSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Fixed</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>25</width>
-         <height>19</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="2" column="1">
-      <widget class="QComboBox" name="audioFormatComboBox">
-       <item>
-        <property name="text">
-         <string>mp3</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>flac</string>
-        </property>
-       </item>
       </widget>
      </item>
     </layout>

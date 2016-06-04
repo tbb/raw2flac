@@ -1,7 +1,10 @@
 from os import walk, path, mkdir
 from sys import argv, exit
-from time import sleep
+from datetime import datetime
+
 import subprocess
+import re
+import json
 
 from PyQt5.QtWidgets import QWidget, QFileDialog, QApplication
 from PyQt5.QtCore import pyqtSignal, QThread
@@ -11,12 +14,14 @@ from main_ui import Ui_Form
 class convertFileThread(QThread):
 
     successfullyConvert = pyqtSignal(str, str)
+    failureConvert = pyqtSignal(str, str)
     successfullyFinish = pyqtSignal()
 
-    def __init__(self, resourceDict, audioFormat):
+    def __init__(self, resourceDict, audioFormat, settings):
         QThread.__init__(self)
         self.resourceDict = resourceDict
         self.audioFormat = audioFormat
+        self.settings = settings
         self.needConvertation = True
 
     def __del__(self):
@@ -32,9 +37,9 @@ class convertFileThread(QThread):
             "-f",
             "s16le",
             "-ar",
-            "22050",
+            self.settings["frequency"],
             "-ac",
-            "2",
+            self.settings["channels"],
             "-i",
             resourcePath,
             destinationPath
@@ -53,7 +58,9 @@ class convertFileThread(QThread):
             if self._convert(resPath, self.resourceDict[resPath]):
                 self.successfullyConvert.emit(resPath, self.resourceDict[resPath])
             else:
-                print("Handle exception with convert {} to {}".format(resPath, self.resourceDict[resPath]))
+                self.failureConvert.emit(resPath, self.resourceDict[resPath])
+#                print("Handle exception with convert {} to {}".format(resPath, self.resourceDict[resPath]))
+#                try to use sys.exc_info() -> (type, value, traceback)
             if not self.needConvertation:
                 break
         else:
@@ -61,13 +68,23 @@ class convertFileThread(QThread):
 
 
 class MainWindow(Ui_Form):
+
+    regexp_kim = re.compile(r"^[0-9]{7}$")
+    END_CONVERTATION = 3
+    START_CONVERTATION = 2
+    SUCCESS = 1
+    FAIL = 0
+
     def __init__(self, form):
         self.setupUi(form)
 
+        self.PPE_ID = 'Empty field'
         self.RESULT_DIRNAME = ''
         self.RESULT_CONVERTED_DIRNAME = ''
         self.FILE_EXTENSION = '.' + self.audioFormatComboBox.currentText()
         self.currentIndex = 0
+
+        self.read_config_file("config.json")
 
         if self.check_ffmpeg_framework():
             self.resourceDirectoryDialogButton.clicked.connect(self.showResourceDialog)
@@ -79,6 +96,11 @@ class MainWindow(Ui_Form):
             self.convertButton.clicked.connect(self.convert)
         else:
             self.informationTextEdit.append("Can't find ffmpeg framework. Ensure that it was installed, added to PATH.".format())
+
+    def read_config_file(self, config_path):
+        with open("config.json", "r") as config_file:
+            settings_dict = json.load(config_file)
+        self.convertation_settings = settings_dict["convertation_settings"]
 
     def check_ffmpeg_framework(self):
         try:
@@ -159,7 +181,11 @@ Press convert button to start convert another {} files."""
             self.currentIndex = 0
 
     def convert(self):
+        self.DUPLICATE_FOUND = False
+        self.PPE_ID = self.resourceIdLineEdit.text() if self.resourceIdLineEdit.text() else self.PPE_ID
+        self.addLogEntry(self.START_CONVERTATION)
         resourceDict = {}
+        duplicate_kim_dirs = []
         if not path.exists(self.RESULT_CONVERTED_DIRNAME):
             mkdir(self.RESULT_CONVERTED_DIRNAME)
         for root, dirs, files in walk(self.RESULT_DIRNAME):
@@ -168,17 +194,27 @@ Press convert button to start convert another {} files."""
                 destination_dirictory_path = path.join(self.RESULT_CONVERTED_DIRNAME, path.relpath(dirpath, start=self.RESULT_DIRNAME))
                 if not path.exists(destination_dirictory_path):
                     mkdir(destination_dirictory_path)
-                else:
-                    print("WARNING: Directory {} already exists".format(path.relpath(destination_dirictory_path, start=self.RESULT_CONVERTED_DIRNAME)))
+                elif self.regexp_kim.fullmatch(dirname):
+                    duplicate_kim_dirs.append(path.relpath(dirpath, start=self.RESULT_DIRNAME))
             for filename in files:
                 filepath = path.relpath(path.join(root, filename), start=self.RESULT_DIRNAME)
                 if filepath in self.new_files:
+                    dirpath = path.relpath(root, start=self.RESULT_DIRNAME)
+                    if dirpath in duplicate_kim_dirs:
+                        self.DUPLICATE_FOUND = True
+                        destination_file_path = path.join(self.RESULT_CONVERTED_DIRNAME, dirpath + "_duplicate")
+                        print(destination_file_path)
+                        if not path.exists(destination_file_path):
+                            mkdir(destination_file_path)
+                    else:
+                        destination_file_path = path.join(self.RESULT_CONVERTED_DIRNAME, dirpath)
+                    destination_file_path += path.sep + filename + self.FILE_EXTENSION
                     resource_file_path = path.join(self.RESULT_DIRNAME, filepath)
-                    destination_file_path = path.join(self.RESULT_CONVERTED_DIRNAME, filepath) + self.FILE_EXTENSION
                     resourceDict[resource_file_path] = destination_file_path 
         self.convertButton.setEnabled(False)
-        self.thread = convertFileThread(resourceDict, self.FILE_EXTENSION[1:])
+        self.thread = convertFileThread(resourceDict, self.FILE_EXTENSION[1:], self.convertation_settings)
         self.thread.successfullyConvert[str, str].connect(self.convertAnotherOne)
+        self.thread.failureConvert[str, str].connect(self.failConvertation)
         self.thread.successfullyFinish.connect(self.finishMessage)
         self.convertStopButton.clicked.connect(self.stopConvertation)
         self.convertStopButton.setEnabled(True)
@@ -189,11 +225,31 @@ Press convert button to start convert another {} files."""
         self.convertStopButton.setEnabled(False)
 
     def convertAnotherOne(self, resourcePath, destinationPath):
-        self.informationTextEdit.append("File from:\n\t{} \nsuccessfully convert to \n\t{}\n\n".format(resourcePath, destinationPath))
+        self.informationTextEdit.append("File from:\n\t{} \nsuccessfully convert to \n\t{}\n\n.".format(resourcePath, destinationPath))
         self.convertProgressBar.setValue(self.convertProgressBar.value() + 1)
+        self.addLogEntry(self.SUCCESS, resourcePath, destinationPath)
+
+    def failConvertation(self, resourcePath, destinationPath):
+        self.informationTextEdit.append("ATTENTION:\nFile from:\n\t{} \n failed to convert")
+        self.addLogEntry(self.FAIL, resourcePath, destinationPath)
+
+    def addLogEntry(self, status, resourcePath="", destinationPath=""):
+        with open("convertation.log", "a") as log:
+            if status == self.SUCCESS:
+                log.write("{}:\t{} successfully convert\n".format(datetime.now().ctime(), path.relpath(resourcePath, start=self.RESULT_DIRNAME))) 
+            elif status == self.FAIL:
+                log.write("{}:\t{} failed to convert\n".format(datetime.now().ctime(), path.relpath(resourcePath, start=self.RESULT_DIRNAME)))
+            elif status == self.START_CONVERTATION:
+                log.write("{}: start to convert resources from {}\n".format(datetime.now().ctime(), self.PPE_ID))
+            elif status == self.END_CONVERTATION:
+                log.write("{}: convertation finish.\n{}\n".format(datetime.now().ctime(), "_"*80))
 
     def finishMessage(self):
-        self.informationTextEdit.append("All files successfully converted to {}".format(self.FILE_EXTENSION[1:]))
+        if self.DUPLICATE_FOUND:
+            self.informationTextEdit.append("Convertation to {} finish, but found duplicates.\nResolve conflicts and remove duplicate folders before next convertation".format(self.FILE_EXTENSION[1:]))
+        else:
+            self.informationTextEdit.append("Convertation to {} successfully finish".format(self.FILE_EXTENSION[1:]))
+        self.addLogEntry(self.END_CONVERTATION)
         self.convertStopButton.setEnabled(False)
 
 
